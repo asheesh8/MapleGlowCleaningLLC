@@ -140,12 +140,17 @@ export async function POST(req: NextRequest) {
 /** Admin-side: list bookings. */
 export async function GET(req: NextRequest) {
   const status = req.nextUrl.searchParams.get('status');
-  const bookings = await prisma.booking.findMany({
-    where: status && status !== 'all' ? { status } : undefined,
-    orderBy: { createdAt: 'desc' },
-    include: { photos: { select: { id: true, filename: true } } },
-    take: 300,
-  });
+  const bookings = await prisma.booking
+    .findMany({
+      where: status && status !== 'all' ? { status } : undefined,
+      orderBy: { createdAt: 'desc' },
+      include: { photos: { select: { id: true, filename: true } } },
+      take: 300,
+    })
+    .catch((err) => {
+      console.error('[bookings.GET]', err);
+      return [];
+    });
 
   return NextResponse.json({ bookings });
 }

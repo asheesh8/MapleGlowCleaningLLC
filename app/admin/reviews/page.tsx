@@ -5,9 +5,14 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Reviews' };
 
 export default async function AdminReviewsPage() {
-  const rows = await prisma.testimonial.findMany({
-    orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
-  });
+  const rows = await prisma.testimonial
+    .findMany({
+      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+    })
+    .catch((err) => {
+      console.error('[admin.reviews]', err);
+      return [];
+    });
 
   const reviews: AdminReview[] = rows.map((r) => ({
     id: r.id,

@@ -7,14 +7,17 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Bookings' };
 
 export default async function AdminPage() {
-  const [rows, catalog] = await Promise.all([
-    prisma.booking.findMany({
+  const catalog = await getAdminCatalog();
+  const rows = await prisma.booking
+    .findMany({
       orderBy: { createdAt: 'desc' },
       include: { photos: { select: { id: true } } },
       take: 300,
-    }),
-    getAdminCatalog(),
-  ]);
+    })
+    .catch((err) => {
+      console.error('[admin.bookings]', err);
+      return [];
+    });
 
   const bookings: AdminBooking[] = rows.map((b) => ({
     id: b.id,

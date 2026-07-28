@@ -8,15 +8,20 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Receptionist chats' };
 
 export default async function AdminChatPage() {
-  const rows = await prisma.chatConversation.findMany({
-    orderBy: { updatedAt: 'desc' },
-    include: {
-      messages: {
-        orderBy: { createdAt: 'asc' },
+  const rows = await prisma.chatConversation
+    .findMany({
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'asc' },
+        },
       },
-    },
-    take: 200,
-  });
+      take: 200,
+    })
+    .catch((err) => {
+      console.error('[admin.chats]', err);
+      return [];
+    });
 
   const conversations: AdminChatConversation[] = rows.map((conversation) => ({
     id: conversation.id,
