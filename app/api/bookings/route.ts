@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
 import { calculateQuote } from '@/lib/pricing';
 import { getActiveCatalog } from '@/lib/catalog';
 import { saveImage } from '@/lib/uploads';
@@ -138,11 +137,8 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/** Admin only: list bookings. */
+/** Admin-side: list bookings. */
 export async function GET(req: NextRequest) {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
   const status = req.nextUrl.searchParams.get('status');
   const bookings = await prisma.booking.findMany({
     where: status && status !== 'all' ? { status } : undefined,

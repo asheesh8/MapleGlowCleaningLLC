@@ -1,6 +1,5 @@
 import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import {
   mapCleaningService,
@@ -17,11 +16,8 @@ function revalidateCatalogPages() {
   revalidatePath('/book');
 }
 
-/** Admin only: create a new public service. */
+/** Admin-side: create a new public service. */
 export async function POST(req: NextRequest) {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
   const body = await req.json().catch(() => null);
   const parsed = catalogServiceSchema.safeParse(body);
   if (!parsed.success) {

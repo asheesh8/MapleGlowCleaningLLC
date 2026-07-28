@@ -1,13 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   DollarSign,
   LayoutDashboard,
   MessageSquareQuote,
   MessageCircle,
-  LogOut,
   ExternalLink,
 } from 'lucide-react';
 import { Logo } from './Logo';
@@ -27,13 +26,6 @@ export function AdminShell({
   adminName: string;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
-
-  async function logout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/admin/login');
-    router.refresh();
-  }
 
   return (
     <div className="min-h-screen bg-cream-100">
@@ -51,10 +43,6 @@ export function AdminShell({
               <ExternalLink className="h-4 w-4" />
               View site
             </Link>
-            <button onClick={logout} className="btn-ghost !px-4 !py-2.5 !text-[13px]">
-              <LogOut className="h-4 w-4" />
-              Sign out
-            </button>
           </div>
         </div>
 

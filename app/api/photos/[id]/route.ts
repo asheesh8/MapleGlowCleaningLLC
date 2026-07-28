@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile } from 'fs/promises';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
 import { resolveUploadPath } from '@/lib/uploads';
 
 export const runtime = 'nodejs';
 
 /**
  * Serves a customer-submitted photo. These show the inside of people's
- * homes, so access requires an admin session.
+ * homes, so keep this route off public-facing links.
  */
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession();
-  if (!session) return new NextResponse('Unauthorized', { status: 401 });
-
   const { id } = await params;
   const photo = await prisma.bookingPhoto.findUnique({
     where: { id },

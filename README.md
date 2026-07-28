@@ -8,8 +8,7 @@ an owner-operated, fully insured cleaning business serving Vermont.
 - **Next.js 15** (App Router) + React 19 + TypeScript
 - **Tailwind CSS** with a palette taken from Katie's own logo (gold / sage / near-black)
 - **Framer Motion** for transitions, the before/after slider, and the marquee
-- **Prisma + SQLite** for bookings, photos, testimonials, and the admin user
-- **jose** (JWT in an httpOnly cookie) + **bcryptjs** for admin auth
+- **Prisma + SQLite** for bookings, photos, testimonials, pricing, and chats
 
 ## Getting started
 
@@ -21,8 +20,7 @@ npm run dev
 
 Then open http://localhost:3000. The admin lives at `/admin`.
 
-Admin credentials default to `propsk28@gmail.com` / `CLEAN` (see
-`.env.example`). Regenerate `AUTH_SECRET` before deploying.
+The admin is currently open access at `/admin`.
 
 ## Routes
 
@@ -51,9 +49,9 @@ ignores any price sent by the client.
 
 Photos uploaded through the booking form show the inside of people's homes, so
 they are deliberately **not** served from `public/`. They are written to
-`private-uploads/` (gitignored) and streamed through `/api/photos/[id]`, which
-requires a valid admin session. Uploads are validated by **magic-byte sniffing**,
-not by the client-supplied MIME type, and stored under a random UUID filename.
+`private-uploads/` (gitignored) and streamed through `/api/photos/[id]` for the
+admin. Uploads are validated by **magic-byte sniffing**, not by the
+client-supplied MIME type, and stored under a random UUID filename.
 
 ## Receptionist chat
 

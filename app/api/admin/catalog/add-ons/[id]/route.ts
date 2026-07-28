@@ -1,6 +1,5 @@
 import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
 import { mapCleaningAddOn } from '@/lib/catalog';
 import { prisma } from '@/lib/db';
 import { catalogAddOnPatchSchema } from '@/lib/validation';
@@ -14,14 +13,11 @@ function revalidateCatalogPages() {
   revalidatePath('/admin');
 }
 
-/** Admin only: update add-on name, pricing, ordering, or visibility. */
+/** Admin-side: update add-on name, pricing, ordering, or visibility. */
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
   const { id } = await params;
   const body = await req.json().catch(() => null);
   const parsed = catalogAddOnPatchSchema.safeParse(body);
