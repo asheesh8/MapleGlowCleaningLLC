@@ -21,8 +21,8 @@ npm run dev
 
 Then open http://localhost:3000. The admin lives at `/admin`.
 
-Credentials come from `.env` (see `.env.example`). **Change `ADMIN_PASSWORD`
-and regenerate `AUTH_SECRET` before deploying.**
+Admin credentials default to `propsk28@gmail.com` / `CLEAN` (see
+`.env.example`). Regenerate `AUTH_SECRET` before deploying.
 
 ## Routes
 

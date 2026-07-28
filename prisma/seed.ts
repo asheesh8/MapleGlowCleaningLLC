@@ -9,12 +9,8 @@ const serializeIncludes = (includes: string[]) =>
 
 async function main() {
   const email = (process.env.ADMIN_EMAIL ?? 'propsk28@gmail.com').toLowerCase();
-  const password = process.env.ADMIN_PASSWORD;
+  const password = process.env.ADMIN_PASSWORD ?? 'CLEAN';
   const name = process.env.ADMIN_NAME ?? 'Katie Proper';
-
-  if (!password) {
-    throw new Error('ADMIN_PASSWORD is not set in .env — cannot seed admin user.');
-  }
 
   const passwordHash = await bcrypt.hash(password, 12);
 
