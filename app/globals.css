@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+  }
+
+  body {
+    @apply bg-cream-100 text-espresso-950 antialiased;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Respect users who ask for less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  ::selection {
+    @apply bg-gold-300/40 text-espresso-950;
+  }
+
+  :focus-visible {
+    outline: 2px solid theme('colors.gold.500');
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .container-mg {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12;
+  }
+
+  /* Warm gold wash used behind the hero and dark panels */
+  .glow-wash {
+    background:
+      radial-gradient(
+        60% 50% at 15% 10%,
+        rgba(212, 175, 55, 0.24) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        50% 45% at 85% 20%,
+        rgba(137, 163, 131, 0.16) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        70% 60% at 50% 100%,
+        rgba(168, 130, 28, 0.12) 0%,
+        transparent 70%
+      );
+  }
+
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-full
+           px-6 py-3.5 text-sm font-semibold transition-all duration-300
+           active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-espresso-900 text-cream-50 shadow-lift-sm
+           hover:bg-espresso-800 hover:shadow-lift;
+  }
+
+  .btn-maple {
+    @apply btn bg-gradient-to-br from-gold-300 to-gold-500 text-espresso-950
+           shadow-glow hover:shadow-glow-lg;
+  }
+
+  .btn-ghost {
+    @apply btn border border-espresso-900/15 bg-white/70 text-espresso-900
+           hover:border-espresso-900/30 hover:bg-white;
+  }
+
+  .card {
+    @apply rounded-4xl border border-espresso-900/[0.07] bg-white shadow-lift-sm
+           transition-all duration-300;
+  }
+
+  .field {
+    @apply w-full rounded-2xl border border-espresso-900/[0.12] bg-cream-50 px-4 py-3.5
+           text-[15px] text-espresso-950 outline-none transition-all duration-200
+           placeholder:text-espresso-900/35
+           focus:border-gold-400 focus:bg-white focus:ring-4 focus:ring-gold-300/20;
+  }
+
+  .field-error {
+    @apply border-red-400/70 bg-red-50/50 focus:border-red-500 focus:ring-red-200/40;
+  }
+
+  .label {
+    @apply mb-2 block text-[13px] font-semibold tracking-wide text-espresso-900/75;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-gold-500/25
+           bg-gold-100/70 px-3.5 py-1.5 text-[11px] font-bold uppercase
+           tracking-[0.14em] text-gold-700;
+  }
+
+  .h-display {
+    @apply font-display font-semibold leading-[1.05] tracking-[-0.02em];
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mask-fade-r {
+    mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  }
+}
