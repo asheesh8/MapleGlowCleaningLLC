@@ -16,7 +16,8 @@ import {
   DollarSign,
   ChevronRight,
 } from 'lucide-react';
-import { services, addOns, frequencies } from '@/lib/content';
+import { frequencies } from '@/lib/content';
+import type { CatalogAddOn, CatalogService } from '@/lib/catalog-types';
 import { formatMoney } from '@/lib/pricing';
 
 export interface AdminBooking {
@@ -59,8 +60,12 @@ const label = (id: string, list: { id: string; name?: string; label?: string }[]
 
 export function AdminDashboard({
   bookings: initial,
+  services,
+  addOns,
 }: {
   bookings: AdminBooking[];
+  services: CatalogService[];
+  addOns: CatalogAddOn[];
 }) {
   const router = useRouter();
   const [bookings, setBookings] = useState(initial);

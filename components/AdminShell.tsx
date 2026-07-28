@@ -2,11 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, MessageSquareQuote, LogOut, ExternalLink } from 'lucide-react';
+import {
+  DollarSign,
+  LayoutDashboard,
+  MessageSquareQuote,
+  MessageCircle,
+  LogOut,
+  ExternalLink,
+} from 'lucide-react';
 import { Logo } from './Logo';
 
 const tabs = [
   { href: '/admin', label: 'Bookings', icon: LayoutDashboard },
+  { href: '/admin/chat', label: 'Chats', icon: MessageCircle },
+  { href: '/admin/pricing', label: 'Pricing', icon: DollarSign },
   { href: '/admin/reviews', label: 'Reviews', icon: MessageSquareQuote },
 ];
 

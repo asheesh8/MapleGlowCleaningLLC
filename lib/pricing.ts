@@ -1,4 +1,11 @@
-import { services, addOns, frequencies, type ServiceId } from './content';
+import {
+  addOns as defaultAddOns,
+  frequencies as defaultFrequencies,
+  services as defaultServices,
+  type AddOn,
+  type Service,
+  type ServiceId,
+} from './content';
 
 export interface QuoteInput {
   serviceType: ServiceId;
@@ -6,6 +13,12 @@ export interface QuoteInput {
   bathrooms: number;
   frequency: string;
   addOns: string[];
+}
+
+export interface PricingCatalog {
+  services: Service[];
+  addOns: AddOn[];
+  frequencies?: typeof defaultFrequencies;
 }
 
 export interface Quote {
@@ -19,7 +32,10 @@ export interface Quote {
  * Transparent estimate model. Deliberately returns a *range* — the real number
  * depends on condition, which Katie confirms after seeing the photos.
  */
-export function calculateQuote(input: QuoteInput): Quote {
+export function calculateQuote(input: QuoteInput, catalog?: PricingCatalog): Quote {
+  const services = catalog?.services.length ? catalog.services : defaultServices;
+  const addOns = catalog?.addOns ?? defaultAddOns;
+  const frequencies = catalog?.frequencies ?? defaultFrequencies;
   const service = services.find((s) => s.id === input.serviceType) ?? services[0];
   const breakdown: { label: string; amount: number }[] = [];
 

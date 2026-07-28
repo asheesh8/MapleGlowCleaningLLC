@@ -17,15 +17,12 @@ export const bookingSchema = z.object({
     .trim()
     .regex(/^\d{5}(-\d{4})?$/, 'Please enter a valid ZIP code'),
 
-  serviceType: z.enum([
-    'residential',
-    'deep',
-    'windows',
-    'grout',
-    'stains',
-    'carpet',
-    'organizing',
-  ]),
+  serviceType: z
+    .string()
+    .trim()
+    .min(1)
+    .max(80)
+    .regex(/^[a-z0-9][a-z0-9-]*$/, 'Please choose a valid service'),
   frequency: z.enum(['once', 'weekly', 'biweekly', 'monthly']),
   bedrooms: z.coerce.number().int().min(0).max(12),
   bathrooms: z.coerce.number().int().min(0).max(12),
@@ -64,3 +61,52 @@ export const testimonialSchema = z.object({
 });
 
 export const testimonialPatchSchema = testimonialSchema.partial();
+
+export const catalogServiceSchema = z.object({
+  name: z.string().trim().min(2, 'Please enter a service name').max(120),
+  short: z.string().trim().min(2, 'Please enter a short label').max(120),
+  description: z.string().trim().min(10, 'Please enter a description').max(1200),
+  includes: z.array(z.string().trim().min(1).max(160)).max(12).default([]),
+  base: z.coerce.number().int().min(0).max(100000),
+  icon: z
+    .enum(['home', 'sparkles', 'window', 'grid', 'droplet', 'layers', 'box'])
+    .default('sparkles'),
+  order: z.coerce.number().int().min(0).max(999).default(0),
+  active: z.boolean().default(true),
+});
+
+export const catalogServicePatchSchema = catalogServiceSchema.partial();
+
+export const catalogAddOnSchema = z.object({
+  name: z.string().trim().min(2, 'Please enter an add-on name').max(120),
+  price: z.coerce.number().int().min(0).max(100000),
+  order: z.coerce.number().int().min(0).max(999).default(0),
+  active: z.boolean().default(true),
+});
+
+export const catalogAddOnPatchSchema = catalogAddOnSchema.partial();
+
+export const chatMessageSchema = z.object({
+  conversationId: z.string().trim().min(8).max(80).optional().nullable(),
+  message: z.string().trim().min(1, 'Please enter a message').max(1500),
+  visitorName: z.string().trim().max(100).optional().nullable(),
+  email: z
+    .string()
+    .trim()
+    .email('Please enter a valid email')
+    .max(200)
+    .optional()
+    .or(z.literal(''))
+    .nullable(),
+  phone: z
+    .string()
+    .trim()
+    .max(30)
+    .regex(/^[\d\s()+\-.]*$/, 'Phone can only contain digits and () + - .')
+    .optional()
+    .nullable(),
+});
+
+export const chatConversationPatchSchema = z.object({
+  status: z.enum(['new', 'open', 'closed', 'archived']),
+});

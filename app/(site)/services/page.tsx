@@ -3,18 +3,23 @@ import type { Metadata } from 'next';
 import { Services } from '@/components/Services';
 import { BeforeAfter } from '@/components/BeforeAfter';
 import { CtaBand } from '@/components/CtaBand';
+import { getActiveCatalog } from '@/lib/catalog';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Services',
   description:
-    'Residential & Airbnb cleaning, deep cleans, window cleaning, grout sealing, stain removal, carpet cleaning, and trash removal across Vermont — with real before and after photos.',
+    'Cleaning services across Vermont with transparent pricing and real before and after photos.',
 };
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const catalog = await getActiveCatalog();
+
   return (
     <>
       <Suspense fallback={<div className="min-h-[60vh]" />}>
-        <Services />
+        <Services services={catalog.services} />
       </Suspense>
       <BeforeAfter />
       <CtaBand />

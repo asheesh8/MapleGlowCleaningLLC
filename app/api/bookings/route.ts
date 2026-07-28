@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { calculateQuote } from '@/lib/pricing';
+import { getActiveCatalog } from '@/lib/catalog';
 import { saveImage } from '@/lib/uploads';
 import { bookingSchema, MAX_PHOTOS, MAX_UPLOAD_BYTES } from '@/lib/validation';
-import type { ServiceId } from '@/lib/content';
 
 export const runtime = 'nodejs';
 
@@ -44,15 +44,39 @@ export async function POST(req: NextRequest) {
       );
     }
     const data = result.data;
+    const catalog = await getActiveCatalog();
+    const serviceIds = new Set(catalog.services.map((service) => service.id));
+    const addOnIds = new Set(catalog.addOns.map((addOn) => addOn.id));
+
+    if (!serviceIds.has(data.serviceType)) {
+      return NextResponse.json(
+        {
+          error: 'Please choose a current service.',
+          fields: { serviceType: ['Please choose a current service.'] },
+        },
+        { status: 400 }
+      );
+    }
+
+    const invalidAddOns = data.addOns.filter((id) => !addOnIds.has(id));
+    if (invalidAddOns.length > 0) {
+      return NextResponse.json(
+        {
+          error: 'One of those add-ons is no longer available.',
+          fields: { addOns: ['Please choose current add-ons.'] },
+        },
+        { status: 400 }
+      );
+    }
 
     // Recompute the quote server-side — never trust a price from the client.
     const quote = calculateQuote({
-      serviceType: data.serviceType as ServiceId,
+      serviceType: data.serviceType,
       bedrooms: data.bedrooms,
       bathrooms: data.bathrooms,
       frequency: data.frequency,
       addOns: data.addOns,
-    });
+    }, catalog);
 
     const photos = form
       .getAll('photos')

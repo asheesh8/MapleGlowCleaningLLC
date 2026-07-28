@@ -15,7 +15,7 @@ import {
   Check,
   Plus,
 } from 'lucide-react';
-import { services, type ServiceId } from '@/lib/content';
+import type { CatalogService } from '@/lib/catalog-types';
 import { PainMarquee } from './PainMarquee';
 import { formatMoney } from '@/lib/pricing';
 
@@ -29,13 +29,18 @@ const ICONS: Record<string, React.ElementType> = {
   box: Box,
 };
 
-export function Services() {
+export function Services({ services }: { services: CatalogService[] }) {
   const params = useSearchParams();
-  const requested = params.get('s') as ServiceId | null;
+  const requested = params.get('s');
+  const firstServiceId = services[0]?.id ?? 'residential';
   const initial =
-    requested && services.some((s) => s.id === requested) ? requested : 'residential';
-  const [active, setActive] = useState<ServiceId>(initial);
-  const current = services.find((s) => s.id === active)!;
+    requested && services.some((s) => s.id === requested) ? requested : firstServiceId;
+  const [active, setActive] = useState<string>(initial);
+  const current = services.find((s) => s.id === active) ?? services[0];
+
+  if (!current) {
+    return null;
+  }
 
   return (
     <section id="services" className="relative py-24 sm:py-28 lg:py-32">
@@ -46,8 +51,8 @@ export function Services() {
             Pick the job. See what&apos;s included.
           </h1>
           <p className="mt-5 text-pretty text-[17px] leading-relaxed text-espresso-900/65">
-            Seven services, priced honestly. Tap any card to see exactly what
-            Katie does — no vague packages, no upsell surprises.
+            Services priced honestly. Tap any card to see exactly what Katie
+            does — no vague packages, no upsell surprises.
           </p>
         </div>
 

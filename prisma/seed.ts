@@ -1,8 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { seedTestimonials } from '../lib/content';
+import { addOns, seedTestimonials, services } from '../lib/content';
 
 const prisma = new PrismaClient();
+
+const serializeIncludes = (includes: string[]) =>
+  JSON.stringify(includes.map((item) => item.trim()).filter(Boolean));
 
 async function main() {
   const email = (process.env.ADMIN_EMAIL ?? 'propsk28@gmail.com').toLowerCase();
@@ -21,6 +24,40 @@ async function main() {
     create: { email, passwordHash, name },
   });
   console.log(`✓ admin user ready: ${email}`);
+
+  for (const [order, service] of services.entries()) {
+    await prisma.cleaningService.upsert({
+      where: { id: service.id },
+      update: {},
+      create: {
+        id: service.id,
+        name: service.name,
+        short: service.short,
+        description: service.description,
+        includes: serializeIncludes(service.includes),
+        base: service.base,
+        icon: service.icon,
+        order,
+        active: true,
+      },
+    });
+  }
+  console.log(`✓ ${services.length} service(s) ready`);
+
+  for (const [order, addOn] of addOns.entries()) {
+    await prisma.cleaningAddOn.upsert({
+      where: { id: addOn.id },
+      update: {},
+      create: {
+        id: addOn.id,
+        name: addOn.name,
+        price: addOn.price,
+        order,
+        active: true,
+      },
+    });
+  }
+  console.log(`✓ ${addOns.length} add-on(s) ready`);
 
   for (const t of seedTestimonials) {
     const exists = await prisma.testimonial.findFirst({

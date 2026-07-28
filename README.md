@@ -29,19 +29,22 @@ and regenerate `AUTH_SECRET` before deploying.**
 | Route | What it is |
 | --- | --- |
 | `/` | Hero, service grid, work teaser, reviews, CTA |
-| `/services` | All seven services + drag-to-compare before/after |
+| `/services` | Active services + drag-to-compare before/after |
 | `/book` | Four-step quote wizard with live pricing and optional photo upload |
 | `/gallery` | 70 job photos with a keyboard-navigable lightbox |
 | `/about` | Katie's story + reviews |
 | `/contact` | Phone, email, Facebook, service area |
 | `/admin` | Booking inbox with statuses, search, and customer photos |
+| `/admin/chat` | Receptionist chat inbox |
+| `/admin/pricing` | Add services and edit service/add-on pricing |
 | `/admin/reviews` | Add, hide, and delete testimonials |
 
 ## How pricing works
 
 `lib/pricing.ts` computes a **range**, never a fixed bill: a per-service base,
 plus extra bedrooms/bathrooms, plus add-ons, minus a frequency discount, then
-±12% for unknown condition. The server **recomputes the quote on submit** and
+±12% for unknown condition. Service and add-on prices are stored in Prisma and
+editable at `/admin/pricing`; the server **recomputes the quote on submit** and
 ignores any price sent by the client.
 
 ## Customer photo privacy
@@ -52,10 +55,18 @@ they are deliberately **not** served from `public/`. They are written to
 requires a valid admin session. Uploads are validated by **magic-byte sniffing**,
 not by the client-supplied MIME type, and stored under a random UUID filename.
 
+## Receptionist chat
+
+The floating chat widget stores conversations in Prisma and shows them at
+`/admin/chat`. The reply generator is intentionally a local placeholder in
+`lib/receptionist.ts`; replace that function with your Supabase or agent call
+when you are ready to wire API keys.
+
 ## Content
 
-Copy, services, and pricing live in `lib/content.ts`. Photos in `public/gallery/`
-came from the business's own Facebook page.
+Business copy and fallback catalog defaults live in `lib/content.ts`. The live
+service/add-on catalog lives in Prisma after `npm run setup`. Photos in
+`public/gallery/` came from the business's own Facebook page.
 
 > **Before going live:** confirm with Katie that every gallery image is her own
 > work. Some images on the Facebook page are labelled "AI content" by Facebook

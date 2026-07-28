@@ -17,12 +17,10 @@ import {
   Info,
 } from 'lucide-react';
 import {
-  services,
-  addOns as ALL_ADDONS,
   frequencies,
   business,
-  type ServiceId,
 } from '@/lib/content';
+import type { CatalogAddOn, CatalogService } from '@/lib/catalog-types';
 import { calculateQuote, formatMoney } from '@/lib/pricing';
 import { MAX_PHOTOS, MAX_UPLOAD_BYTES } from '@/lib/validation';
 
@@ -40,7 +38,7 @@ interface Photo {
 }
 
 interface FormState {
-  serviceType: ServiceId;
+  serviceType: string;
   frequency: string;
   bedrooms: number;
   bathrooms: number;
@@ -57,8 +55,8 @@ interface FormState {
   notes: string;
 }
 
-const INITIAL: FormState = {
-  serviceType: 'residential',
+const makeInitial = (serviceType: string): FormState => ({
+  serviceType,
   frequency: 'once',
   bedrooms: 3,
   bathrooms: 2,
@@ -73,7 +71,7 @@ const INITIAL: FormState = {
   preferredDate: '',
   preferredTime: 'flexible',
   notes: '',
-};
+});
 
 /** Small +/- stepper used for bedroom & bathroom counts. */
 function Counter({
@@ -129,16 +127,23 @@ function Counter({
   );
 }
 
-export function BookingWizard() {
+export function BookingWizard({
+  services,
+  addOns,
+}: {
+  services: CatalogService[];
+  addOns: CatalogAddOn[];
+}) {
   const reduce = useReducedMotion();
   const params = useSearchParams();
-  const requested = params.get('service') as ServiceId | null;
+  const requested = params.get('service');
+  const firstServiceId = services[0]?.id ?? 'residential';
   const preselected =
     requested && services.some((s) => s.id === requested) ? requested : null;
 
   const [step, setStep] = useState(preselected ? 1 : 0);
   const [form, setForm] = useState<FormState>(
-    preselected ? { ...INITIAL, serviceType: preselected } : INITIAL
+    () => makeInitial(preselected ?? firstServiceId)
   );
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -181,8 +186,16 @@ export function BookingWizard() {
         bathrooms: form.bathrooms,
         frequency: form.frequency,
         addOns: form.addOns,
-      }),
-    [form.serviceType, form.bedrooms, form.bathrooms, form.frequency, form.addOns]
+      }, { services, addOns, frequencies }),
+    [
+      form.serviceType,
+      form.bedrooms,
+      form.bathrooms,
+      form.frequency,
+      form.addOns,
+      services,
+      addOns,
+    ]
   );
 
   const addFiles = useCallback((incoming: FileList | File[]) => {
@@ -364,7 +377,7 @@ export function BookingWizard() {
               <button
                 onClick={() => {
                   setResult(null);
-                  setForm(INITIAL);
+                  setForm(makeInitial(firstServiceId));
                   setStep(0);
                 }}
                 className="btn-ghost mt-8 !border-white/15 !bg-white/10 !text-cream-50 hover:!bg-white/20"
@@ -378,7 +391,11 @@ export function BookingWizard() {
     );
   }
 
-  const currentService = services.find((s) => s.id === form.serviceType)!;
+  const currentService = services.find((s) => s.id === form.serviceType) ?? services[0];
+
+  if (!currentService) {
+    return null;
+  }
 
   return (
     <section
@@ -578,7 +595,7 @@ export function BookingWizard() {
                     <div className="mt-7">
                       <p className="label">Add anything else?</p>
                       <div className="flex flex-wrap gap-2">
-                        {ALL_ADDONS.map((a) => {
+                        {addOns.map((a) => {
                           const on = form.addOns.includes(a.id);
                           return (
                             <button

@@ -18,14 +18,7 @@ export const business = {
   serviceArea: 'Vermont',
 } as const;
 
-export type ServiceId =
-  | 'residential'
-  | 'deep'
-  | 'windows'
-  | 'grout'
-  | 'stains'
-  | 'carpet'
-  | 'organizing';
+export type ServiceId = string;
 
 export interface Service {
   id: ServiceId;

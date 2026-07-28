@@ -1,8 +1,9 @@
 import { Phone, Mail, MapPin, Facebook } from 'lucide-react';
 import { Logo } from './Logo';
-import { business, services } from '@/lib/content';
+import { business } from '@/lib/content';
+import type { CatalogService } from '@/lib/catalog-types';
 
-export function Footer() {
+export function Footer({ services }: { services: CatalogService[] }) {
   return (
     <footer className="border-t border-espresso-900/10 bg-cream-200/50">
       <div className="container-mg py-16">
@@ -34,7 +35,7 @@ export function Footer() {
               {services.map((s) => (
                 <li key={s.id}>
                   <a
-                    href="#services"
+                    href={`/services?s=${s.id}`}
                     className="text-[14.5px] text-espresso-900/70 transition-colors hover:text-gold-600"
                   >
                     {s.name}

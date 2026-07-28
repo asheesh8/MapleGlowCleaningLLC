@@ -12,7 +12,7 @@ import {
   PanelsTopLeft,
   ArrowRight,
 } from 'lucide-react';
-import { services } from '@/lib/content';
+import type { CatalogService } from '@/lib/catalog-types';
 import { formatMoney } from '@/lib/pricing';
 
 const ICONS: Record<string, React.ElementType> = {
@@ -26,14 +26,14 @@ const ICONS: Record<string, React.ElementType> = {
 };
 
 /** Compact services grid for the home page — full detail lives on /services. */
-export function ServicesPreview() {
+export function ServicesPreview({ services }: { services: CatalogService[] }) {
   return (
     <section className="py-20 sm:py-24">
       <div className="container-mg">
         <div className="mx-auto max-w-2xl text-center">
           <span className="eyebrow">What she does</span>
           <h2 className="h-display mt-5 text-balance text-3xl sm:text-4xl">
-            Seven services, priced honestly.
+            Services, priced honestly.
           </h2>
           <p className="mt-4 text-pretty leading-relaxed text-espresso-900/65">
             No vague packages and no upsell surprises — just the work you asked

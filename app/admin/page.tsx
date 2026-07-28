@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db';
+import { getAdminCatalog } from '@/lib/catalog';
 import { AdminDashboard, type AdminBooking } from '@/components/AdminDashboard';
 
 export const dynamic = 'force-dynamic';
@@ -6,11 +7,14 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Bookings' };
 
 export default async function AdminPage() {
-  const rows = await prisma.booking.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: { photos: { select: { id: true } } },
-    take: 300,
-  });
+  const [rows, catalog] = await Promise.all([
+    prisma.booking.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { photos: { select: { id: true } } },
+      take: 300,
+    }),
+    getAdminCatalog(),
+  ]);
 
   const bookings: AdminBooking[] = rows.map((b) => ({
     id: b.id,
@@ -37,5 +41,11 @@ export default async function AdminPage() {
     photoIds: b.photos.map((p) => p.id),
   }));
 
-  return <AdminDashboard bookings={bookings} />;
+  return (
+    <AdminDashboard
+      bookings={bookings}
+      services={catalog.services}
+      addOns={catalog.addOns}
+    />
+  );
 }

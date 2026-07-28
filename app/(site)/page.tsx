@@ -6,11 +6,13 @@ import { ServicesPreview } from '@/components/ServicesPreview';
 import { CtaBand } from '@/components/CtaBand';
 import { Testimonials, type Review } from '@/components/Testimonials';
 import { prisma } from '@/lib/db';
+import { getActiveCatalog } from '@/lib/catalog';
 import galleryItems from '@/lib/gallery.json';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
+  const catalog = await getActiveCatalog();
   let reviews: Review[] = [];
   try {
     reviews = await prisma.testimonial.findMany({
@@ -29,7 +31,7 @@ export default async function HomePage() {
   return (
     <>
       <Hero />
-      <ServicesPreview />
+      <ServicesPreview services={catalog.services} />
 
       {/* Work teaser */}
       <section className="py-20 sm:py-24">
