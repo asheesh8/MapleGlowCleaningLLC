@@ -6,39 +6,118 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MoveHorizontal, Sparkles } from 'lucide-react';
 import { beforeAfter } from '@/lib/content';
 
+const START = 50;
+
 /**
- * Drag-to-compare slider. Pointer events cover mouse, touch, and pen, and the
- * handle is a real range input underneath so it stays keyboard-accessible.
+ * Drag-to-compare slider.
+ *
+ * The wipe is driven by direct DOM writes inside a rAF, not React state, so a
+ * drag never re-renders the two <Image>s. Pointer capture keeps the gesture
+ * alive even when the cursor leaves the frame, and the handle is a real
+ * role="slider" so it works from the keyboard without an overlay input
+ * stealing pointer events.
  */
 export function BeforeAfter() {
   const [active, setActive] = useState(0);
-  const [pos, setPos] = useState(50);
   const [dragging, setDragging] = useState(false);
+  /** Mirrors the wipe for aria/labels only — updated on release, not per frame. */
+  const [committed, setCommitted] = useState(START);
+
   const frameRef = useRef<HTMLDivElement>(null);
+  const clipRef = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<HTMLDivElement>(null);
+  const posRef = useRef(START);
+  const rafRef = useRef<number | null>(null);
+
   const pair = beforeAfter[active];
 
-  const setFromClientX = useCallback((clientX: number) => {
-    const el = frameRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const next = ((clientX - rect.left) / rect.width) * 100;
-    setPos(Math.min(100, Math.max(0, next)));
+  const paint = useCallback(() => {
+    const p = posRef.current;
+    if (clipRef.current) {
+      clipRef.current.style.clipPath = `inset(0 ${100 - p}% 0 0)`;
+    }
+    if (handleRef.current) {
+      handleRef.current.style.left = `${p}%`;
+    }
   }, []);
 
-  useEffect(() => {
-    if (!dragging) return;
-    const move = (e: PointerEvent) => setFromClientX(e.clientX);
-    const up = () => setDragging(false);
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
-    return () => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-    };
-  }, [dragging, setFromClientX]);
+  /** Queue a paint at most once per frame. */
+  const schedulePaint = useCallback(() => {
+    if (rafRef.current !== null) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      paint();
+    });
+  }, [paint]);
 
-  // Reset the wipe when switching jobs so the "before" always reads first.
-  useEffect(() => setPos(50), [active]);
+  const setPos = useCallback(
+    (next: number) => {
+      posRef.current = Math.min(100, Math.max(0, next));
+      schedulePaint();
+    },
+    [schedulePaint]
+  );
+
+  const setFromClientX = useCallback(
+    (clientX: number) => {
+      const el = frameRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0) return;
+      setPos(((clientX - rect.left) / rect.width) * 100);
+    },
+    [setPos]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  // Reset the wipe when switching jobs so "before" always reads first.
+  useEffect(() => {
+    posRef.current = START;
+    setCommitted(START);
+    paint();
+  }, [active, paint]);
+
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    // Ignore right/middle click so a context menu doesn't start a drag.
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDragging(true);
+    setFromClientX(e.clientX);
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!dragging) return;
+    setFromClientX(e.clientX);
+  }
+
+  function endDrag(e: React.PointerEvent<HTMLDivElement>) {
+    if (!dragging) return;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    setDragging(false);
+    setCommitted(Math.round(posRef.current));
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    const step = e.shiftKey ? 10 : 2;
+    let next: number | null = null;
+
+    if (e.key === 'ArrowLeft') next = posRef.current - step;
+    else if (e.key === 'ArrowRight') next = posRef.current + step;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = 100;
+
+    if (next === null) return;
+    e.preventDefault();
+    setPos(next);
+    setCommitted(Math.round(posRef.current));
+  }
 
   return (
     <section className="relative overflow-hidden py-20 sm:py-24">
@@ -78,39 +157,43 @@ export function BeforeAfter() {
         </div>
 
         {/* Comparison */}
-        <div className="mx-auto mt-8 max-w-3xl">
+        <div className="mx-auto mt-8 max-w-2xl">
           <div
             ref={frameRef}
-            onPointerDown={(e) => {
-              setDragging(true);
-              setFromClientX(e.clientX);
-            }}
-            className="relative aspect-square w-full touch-none select-none overflow-hidden
-                       rounded-4xl bg-espresso-950 shadow-lift sm:aspect-[4/3]"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={endDrag}
+            onPointerCancel={endDrag}
+            onDragStart={(e) => e.preventDefault()}
+            className={`relative aspect-square w-full touch-none select-none overflow-hidden
+                        rounded-4xl bg-espresso-950 shadow-lift ${
+                          dragging ? 'cursor-grabbing' : 'cursor-ew-resize'
+                        }`}
           >
-            {/* After (full width, underneath) */}
+            {/* After — full width, underneath */}
             <Image
-              key={`${pair.id}-after`}
               src={pair.after}
               alt={`${pair.label} after cleaning`}
               fill
-              sizes="(max-width: 768px) 100vw, 768px"
-              className="object-cover"
+              draggable={false}
+              sizes="(max-width: 768px) 100vw, 672px"
+              className="pointer-events-none select-none object-cover"
               priority
             />
 
-            {/* Before (clipped to the handle position) */}
+            {/* Before — clipped to the handle position */}
             <div
-              className="absolute inset-0 overflow-hidden"
-              style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}
+              ref={clipRef}
+              className="absolute inset-0"
+              style={{ clipPath: `inset(0 ${100 - START}% 0 0)` }}
             >
               <Image
-                key={`${pair.id}-before`}
                 src={pair.before}
                 alt={`${pair.label} before cleaning`}
                 fill
-                sizes="(max-width: 768px) 100vw, 768px"
-                className="object-cover"
+                draggable={false}
+                sizes="(max-width: 768px) 100vw, 672px"
+                className="pointer-events-none select-none object-cover"
                 priority
               />
             </div>
@@ -131,35 +214,37 @@ export function BeforeAfter() {
               After
             </span>
 
-            {/* Divider + handle */}
+            {/* Divider + grab handle */}
             <div
-              className="pointer-events-none absolute inset-y-0 w-0.5 bg-cream-50 shadow-[0_0_12px_rgba(0,0,0,0.45)]"
-              style={{ left: `${pos}%` }}
+              ref={handleRef}
+              role="slider"
+              tabIndex={0}
+              aria-label={`Reveal before or after for ${pair.label}`}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={committed}
+              aria-valuetext={`${committed}% before`}
+              aria-orientation="horizontal"
+              onKeyDown={onKeyDown}
+              className="absolute inset-y-0 -ml-5 w-10 cursor-ew-resize"
+              style={{ left: `${START}%` }}
             >
+              {/* Vertical rule */}
+              <span className="pointer-events-none absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2
+                               bg-cream-50 shadow-[0_0_12px_rgba(0,0,0,0.45)]" />
+              {/* Knob */}
               <span
-                className={`absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2
-                            -translate-y-1/2 items-center justify-center rounded-full
-                            bg-cream-50 shadow-lift transition-transform ${
-                              dragging ? 'scale-110' : ''
-                            }`}
+                className={`pointer-events-none absolute left-1/2 top-1/2 flex h-12 w-12
+                            -translate-x-1/2 -translate-y-1/2 items-center justify-center
+                            rounded-full bg-cream-50 shadow-lift transition-transform
+                            duration-150 ${dragging ? 'scale-110' : ''}`}
               >
-                <MoveHorizontal className="h-5 w-5 text-espresso-900" strokeWidth={2.5} />
+                <MoveHorizontal
+                  className="h-5 w-5 text-espresso-900"
+                  strokeWidth={2.5}
+                />
               </span>
             </div>
-
-            {/* Accessible control */}
-            <label className="sr-only" htmlFor="ba-range">
-              Reveal before or after for {pair.label}
-            </label>
-            <input
-              id="ba-range"
-              type="range"
-              min={0}
-              max={100}
-              value={Math.round(pos)}
-              onChange={(e) => setPos(Number(e.target.value))}
-              className="absolute inset-x-0 bottom-0 h-10 w-full cursor-ew-resize opacity-0"
-            />
           </div>
 
           <AnimatePresence mode="wait">

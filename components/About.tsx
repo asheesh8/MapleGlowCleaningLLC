@@ -21,31 +21,40 @@ export function About() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="relative order-2 lg:order-1"
+            className="order-2 lg:order-1"
           >
-            <div className="relative aspect-[4/5] overflow-hidden rounded-5xl bg-espresso-950">
+            {/* The source is a tall 0.6 portrait, so anchor to the top —
+                centring it crops Katie's head off. The badge lives inside this
+                wrapper so it tracks the image edge, not the grid column. */}
+            <div className="relative mx-auto aspect-[3/4] w-full max-w-md overflow-hidden
+                            rounded-5xl bg-espresso-950 lg:max-w-none">
               <Image
                 src="/katie.jpg"
                 alt="Katie Proper, owner of Maple Glow Cleaning"
                 fill
                 sizes="(max-width: 1024px) 100vw, 45vw"
-                className="object-cover object-center"
+                className="object-cover object-top"
               />
-            </div>
+              <span
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5
+                           bg-gradient-to-t from-espresso-950/75 to-transparent"
+                aria-hidden
+              />
 
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="absolute -bottom-5 -right-3 rounded-3xl bg-gradient-to-br
-                         from-gold-300 to-gold-500 px-6 py-4 shadow-glow sm:-right-6"
-            >
-              <span className="h-display block text-2xl text-espresso-950">Vermont</span>
-              <span className="text-[12px] font-bold uppercase tracking-[0.14em] text-espresso-950/60">
-                Born &amp; based
-              </span>
-            </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+                className="absolute bottom-5 right-5 rounded-2xl bg-gradient-to-br
+                           from-gold-300 to-gold-500 px-5 py-3.5 shadow-glow"
+              >
+                <span className="h-display block text-xl text-espresso-950">Vermont</span>
+                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-espresso-950/60">
+                  Born &amp; based
+                </span>
+              </motion.div>
+            </div>
           </motion.div>
 
           <div className="order-1 lg:order-2">
