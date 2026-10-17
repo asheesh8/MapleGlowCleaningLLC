@@ -3,6 +3,17 @@
 Marketing site + booking system for [Maple Glow Cleaning LLC](https://www.facebook.com/profile.php?id=61590621946523),
 an owner-operated, fully insured cleaning business serving Vermont.
 
+**Hosting:** Vercel project `maple-glow-cleaning-llc` (pushes to `main` deploy to production).
+
+### Environment variables
+
+Names only — see `.env.example`; never commit real values.
+
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | SQLite file locally. A serverless host has no durable disk, so production needs a hosted database for bookings and chats to persist. |
+| `ADMIN_EMAIL`, `ADMIN_NAME` | Used by the seed to create the admin user |
+
 ## Stack
 
 - **Next.js 15** (App Router) + React 19 + TypeScript
